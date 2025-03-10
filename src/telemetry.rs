@@ -30,6 +30,7 @@ where
 ///
 /// It should only be called once!
 pub fn init_subscriber(subscriber: impl Subscriber + Send + Sync) {
+    // Redirect all `log`'s events to our subscriber
     LogTracer::init().expect("Failed to set logger");
     set_global_default(subscriber).expect("Failed to set subscriber");
 }

@@ -29,6 +29,10 @@ pub struct TestApp {
 async fn spawn_app() -> TestApp {
     // let subscriber = get_subscriber("test".into(), "debug".into());
     // init_subscriber(subscriber);
+    //-> Fail because all test cases call init_subscriber(). But it should only call 1 time
+
+    // The first time `initialize` is invoked the code in `TRACING` is executed.
+    // All other invocations will instead skip execution.
     Lazy::force(&TRACING);
 
     let listener = TcpListener::bind("127.0.0.1:0").expect("Failed to bind random port");
