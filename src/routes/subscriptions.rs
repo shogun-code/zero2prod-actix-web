@@ -19,6 +19,7 @@ pub struct FormData {
 )]
 pub async fn subscribe(
     form: web::Form<FormData>,
+    // Retrieving a connection from the application state!
     pool: web::Data<PgPool>
 ) -> HttpResponse {
 
