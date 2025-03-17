@@ -3,8 +3,12 @@ application:
   host: 0.0.0.0
 database:
   host: "127.0.0.1"
-  port: 5432
+  port: 5001
   username: "postgres"
-  password: "postgres"
+  password: "password"
   database_name: "newsletter"
   require_ssl: false
+email_client:
+  base_url: "localhost"
+  sender_email: "test@gmail.com"
+  authorization_token: "my-secret-token"
