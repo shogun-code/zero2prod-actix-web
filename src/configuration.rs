@@ -1,25 +1,19 @@
-use secrecy::SecretString;
-use secrecy::ExposeSecret;
-use sqlx::postgres::{PgConnectOptions, PgSslMode};
 use crate::domain::SubscriberEmail;
+use secrecy::{ExposeSecret, SecretString};
+use serde_aux::field_attributes::deserialize_number_from_string;
+use sqlx::postgres::{PgConnectOptions, PgSslMode};
+use std::convert::{TryFrom, TryInto};
 
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Clone)]
 pub struct Settings {
     pub database: DatabaseSettings,
     pub application: ApplicationSettings,
     pub email_client: EmailClientSettings,
 }
 
-#[derive(serde::Deserialize)]
-pub struct EmailClientSettings {
-    pub base_url: String,
-    pub sender_email: String,
-    pub authorization_token: SecretString,
-    pub timeout_milliseconds: u64,
-}
-
-#[derive(serde::Deserialize)]
+#[derive(serde::Deserialize, Clone)]
 pub struct ApplicationSettings {
+    #[serde(deserialize_with = "deserialize_number_from_string")]
     pub port: u16,
     pub host: String,
 }
@@ -28,6 +22,7 @@ pub struct ApplicationSettings {
 pub struct DatabaseSettings {
     pub username: String,
     pub password: SecretString,
+    #[serde(deserialize_with = "deserialize_number_from_string")]
     pub port: u16,
     pub host: String,
     pub database_name: String,
@@ -49,20 +44,14 @@ impl DatabaseSettings {
             .ssl_mode(ssl_mode)
             .database(&self.database_name)
     }
+}
 
-    pub fn connection_string(&self) -> SecretString {
-        SecretString::new(Box::from(format!(
-            "postgres://{}:{}@{}:{}/{}",
-            self.username, self.password.expose_secret(), self.host, self.port, self.database_name
-        )))
-    }
-
-    pub fn connection_string_without_db(&self) -> SecretString {
-        SecretString::new(Box::from(format!(
-            "postgres://{}:{}@{}:{}",
-            self.username, self.password.expose_secret(), self.host, self.port
-        )))
-    }
+#[derive(serde::Deserialize, Clone)]
+pub struct EmailClientSettings {
+    pub base_url: String,
+    pub sender_email: String,
+    pub authorization_token: SecretString,
+    pub timeout_milliseconds: u64,
 }
 
 impl EmailClientSettings {
@@ -110,6 +99,7 @@ pub enum Environment {
     Local,
     Production,
 }
+
 impl Environment {
     pub fn as_str(&self) -> &'static str {
         match self {
@@ -121,6 +111,7 @@ impl Environment {
 
 impl TryFrom<String> for Environment {
     type Error = String;
+
     fn try_from(s: String) -> Result<Self, Self::Error> {
         match s.to_lowercase().as_str() {
             "local" => Ok(Self::Local),
