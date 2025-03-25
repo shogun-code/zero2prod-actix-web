@@ -44,6 +44,9 @@ tracing-log = "0.2.0"
 tracing-actix-web = "0.7"
 secrecy = { version = "0.8", features = ["serde"] }
 thiserror = "2.0.12"
+base64 = "0.22.0"
+sha3 = "0.9"
+argon2 = { version = "0.5", features = ["std"] }
 
 [dev-dependencies]
 quickcheck = "1.0.3"
