@@ -10,6 +10,7 @@ use hmac::{Hmac, Mac};
 use secrecy::{ExposeSecret, Secret};
 use sqlx::PgPool;
 use actix_web::cookie::Cookie;
+use actix_web_flash_messages::FlashMessage;
 
 #[derive(serde::Deserialize)]
 pub struct FormData {
@@ -52,11 +53,12 @@ pub async fn login(
             //     mac.update(query_string.as_bytes());
             //     mac.finalize().into_bytes()
             // };
+            FlashMessage::error(e.to_string()).send();
             let response = HttpResponse::SeeOther()
                 //.insert_header((LOCATION, format!("/login?{query_string}&tag={hmac_tag:x}")))
                 .insert_header((LOCATION, "/login"))
                 //.insert_header(("Set-Cookie", format!("_flash={e}")))
-                .cookie(Cookie::new("_flash", e.to_string()))
+                //.cookie(Cookie::new("_flash", e.to_string()))
                 .finish();
             Err(InternalError::from_response(e, response))
         }
