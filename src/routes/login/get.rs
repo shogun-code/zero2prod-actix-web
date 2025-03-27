@@ -3,6 +3,7 @@ use actix_web::{http::header::ContentType, web, HttpResponse};
 use hmac::{Hmac, Mac};
 use secrecy::ExposeSecret;
 use actix_web::HttpRequest;
+use actix_web::cookie::{Cookie, time::Duration};
 
 #[derive(serde::Deserialize)]
 pub struct QueryParams {
@@ -34,7 +35,7 @@ pub async fn login_form(
         }
     };
 
-    HttpResponse::Ok()
+    let mut response = HttpResponse::Ok()
         .content_type(ContentType::html())
         .body(format!(
             r#"<!DOCTYPE html>
@@ -64,5 +65,11 @@ pub async fn login_form(
     </form>
 </body>
 </html>"#,
-        ))
+        ));
+
+    response
+        .add_removal_cookie(&Cookie::new("_flash", ""))
+        .unwrap();
+
+    response
 }
