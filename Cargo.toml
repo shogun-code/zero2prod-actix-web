@@ -25,7 +25,7 @@ sqlx = { version = "0.8", default-features = false, features = [
     "chrono",
     "migrate",
 ] }
-uuid = { version = "1", features = ["v4"] }
+uuid = { version = "1", features = ["v4", "serde"] }
 chrono = { version = "0.4.22", default-features = false, features = ["clock"] }
 reqwest = { version = "0.12", default-features = false, features = [
     "json",
@@ -53,6 +53,8 @@ sha2 = "0.10.8"
 htmlescape = "0.3"
 hex = "0.4.3"
 actix-web-flash-messages = { version = "0.5.0", features = ["cookies"] }
+actix-session = { version = "0.10", features = ["redis-session-rustls"] }
+serde_json = "1"
 
 [dev-dependencies]
 quickcheck = "1.0.3"
