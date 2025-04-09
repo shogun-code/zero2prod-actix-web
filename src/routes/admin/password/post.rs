@@ -16,6 +16,7 @@ pub struct FormData {
 pub async fn change_password(
     form: web::Form<FormData>,
     pool: web::Data<PgPool>,
+    // No longer injecting TypedSession!
     user_id: web::ReqData<UserId>,
 ) -> Result<HttpResponse, actix_web::Error> {
     let user_id = user_id.into_inner();

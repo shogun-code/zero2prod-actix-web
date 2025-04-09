@@ -193,7 +193,7 @@ pub async fn spawn_app() -> TestApp {
     let _ = tokio::spawn(application.run_until_stopped());
 
     let client = reqwest::Client::builder()
-        .redirect(reqwest::redirect::Policy::none())
+        .redirect(reqwest::redirect::Policy::none())// No redirect
         .cookie_store(true)
         .build()
         .unwrap();

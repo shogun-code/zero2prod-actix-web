@@ -17,12 +17,10 @@ pub struct FormData {
 
 #[tracing::instrument(
     name = "Publish a newsletter issue",
-    skip(form, pool, email_client, user_id),
-    fields(user_id=%*user_id)
+    skip(form, pool, email_client),
 )]
 pub async fn publish_newsletter(
     form: web::Form<FormData>,
-    user_id: ReqData<UserId>,
     pool: web::Data<PgPool>,
     email_client: web::Data<EmailClient>,
 ) -> Result<HttpResponse, actix_web::Error> {
