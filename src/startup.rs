@@ -27,28 +27,15 @@ pub struct Application {
 
 impl Application {
     pub async fn build(configuration: Settings) -> Result<Self, anyhow::Error> {
-        let connection_pool = get_connection_pool(&configuration.database)
-            .await
-            .expect("Failed to connect to Postgres.");
-
-        let sender_email = configuration
-            .email_client
-            .sender()
-            .expect("Invalid sender email address.");
-        let timeout = configuration.email_client.timeout();
-        let email_client = EmailClient::new(
-            configuration.email_client.base_url,
-            sender_email,
-            configuration.email_client.authorization_token,
-            timeout,
-        );
+        let connection_pool = get_connection_pool(&configuration.database);
+        let email_client = configuration.email_client.client();
 
         let address = format!(
             "{}:{}",
             configuration.application.host, configuration.application.port
         );
         let listener = TcpListener::bind(address)?;
-        let port = listener.local_addr()?.port();
+        let port = listener.local_addr().unwrap().port();
         let server = run(
             listener,
             connection_pool,
@@ -71,10 +58,8 @@ impl Application {
     }
 }
 
-pub async fn get_connection_pool(configuration: &DatabaseSettings) -> Result<PgPool, sqlx::Error> {
-    PgPoolOptions::new()
-        .connect_with(configuration.connect_options())
-        .await
+pub fn get_connection_pool(configuration: &DatabaseSettings) -> PgPool {
+    PgPoolOptions::new().connect_lazy_with(configuration.connect_options())
 }
 
 pub struct ApplicationBaseUrl(pub String);
@@ -122,12 +107,8 @@ async fn run(
             .app_data(db_pool.clone())
             .app_data(email_client.clone())
             .app_data(base_url.clone())
-            .app_data(Data::new(HmacSecret(hmac_secret.clone())))
     })
         .listen(listener)?
         .run();
     Ok(server)
 }
-
-#[derive(Clone)]
-pub struct HmacSecret(pub Secret<String>);

@@ -1,4 +1,5 @@
 use crate::domain::SubscriberEmail;
+use crate::email_client::EmailClient;
 use secrecy::{ExposeSecret, Secret};
 use serde_aux::field_attributes::deserialize_number_from_string;
 use sqlx::postgres::{PgConnectOptions, PgSslMode};
@@ -13,15 +14,6 @@ pub struct Settings {
 }
 
 #[derive(serde::Deserialize, Clone)]
-pub struct ApplicationSettings {
-    #[serde(deserialize_with = "deserialize_number_from_string")]
-    pub port: u16,
-    pub host: String,
-    pub base_url: String,
-    pub hmac_secret: Secret<String>,
-}
-
-#[derive(serde::Deserialize, Clone)]
 pub struct DatabaseSettings {
     pub username: String,
     pub password: Secret<String>,
@@ -30,6 +22,25 @@ pub struct DatabaseSettings {
     pub host: String,
     pub database_name: String,
     pub require_ssl: bool,
+}
+
+#[derive(serde::Deserialize, Clone)]
+pub struct ApplicationSettings {
+    #[serde(deserialize_with = "deserialize_number_from_string")]
+    pub port: u16,
+    pub host: String,
+    pub base_url: String,
+    pub hmac_secret: Secret<String>,
+}
+
+
+#[derive(serde::Deserialize, Clone)]
+pub struct EmailClientSettings {
+    pub base_url: String,
+    pub sender_email: String,
+    pub authorization_token: Secret<String>,
+    #[serde(deserialize_with = "deserialize_number_from_string")]
+    pub timeout_milliseconds: u64,
 }
 
 impl DatabaseSettings {
@@ -49,15 +60,18 @@ impl DatabaseSettings {
     }
 }
 
-#[derive(serde::Deserialize, Clone)]
-pub struct EmailClientSettings {
-    pub base_url: String,
-    pub sender_email: String,
-    pub authorization_token: Secret<String>,
-    pub timeout_milliseconds: u64,
-}
-
 impl EmailClientSettings {
+    pub fn client(self) -> EmailClient {
+        let sender_email = self.sender().expect("Invalid sender email address.");
+        let timeout = self.timeout();
+        EmailClient::new(
+            self.base_url,
+            sender_email,
+            self.authorization_token,
+            timeout,
+        )
+    }
+
     pub fn sender(&self) -> Result<SubscriberEmail, String> {
         SubscriberEmail::parse(self.sender_email.clone())
     }
